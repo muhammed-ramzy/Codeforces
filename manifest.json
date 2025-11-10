@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Codeforces Email Finder",
+  "version": "1.0",
+  "description": "Get emails of Codeforces handles from Google Sheet",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://codeforces.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
