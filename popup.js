@@ -25,7 +25,7 @@ document.getElementById("getEmails").addEventListener("click", async () => {
 
       const handles = response.handles.join(",");
       const SHEET_API_URL =
-        "https://script.google.com/macros/s/AKfycbwrGx0MmpfGf9ukIbmhGV_LnxZV2hJl99GGIMC8t-FUfE8izEoKIR2HajZx45RT5i04/exec";
+        "https://script.google.com/macros/s/AKfycbyd2yEs6YvRfaNE3xZJmNjkH6SsuhnRW-Vm_y6_53E8x9vvFbSP0DfyXdJrMXdrnF-b/exec";
 
       try {
         const res = await fetch(`${SHEET_API_URL}?handles=${handles}`);
@@ -54,6 +54,12 @@ document.getElementById("getEmails").addEventListener("click", async () => {
         foundEmails.value = found.join("\n");
         notFoundEmails.value = notFound.join("\n");
         resultsContainer.style.display = "block";
+
+        // Update the emails in the page
+        chrome.tabs.sendMessage(tab.id, {
+          action: "updateEmails",
+          emailMap: emailMap,
+        });
       } catch (err) {
         alert("Error fetching emails: " + err.message);
       } finally {
