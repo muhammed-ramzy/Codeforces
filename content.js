@@ -1,4 +1,4 @@
-let emailColumnAdded = false;
+let columnsAdded = false;
 
 function getHandlesFromPage() {
   const elements = Array.from(
@@ -9,7 +9,7 @@ function getHandlesFromPage() {
 }
 
 function addEmailColumn() {
-  if (emailColumnAdded) return;
+  if (columnsAdded) return;
 
   // Find the standings table
   const table = document.querySelector("table.standings");
@@ -34,7 +34,56 @@ function addEmailColumn() {
     row.insertBefore(emailCell, secondCell);
   });
 
-  emailColumnAdded = true;
+  columnsAdded = true;
+}
+function addEmailAndCheckboxColumns() {
+  if (columnsAdded) return;
+
+  const table = document.querySelector("table.standings");
+  if (!table) return;
+
+  const headerRow = table.querySelector("tr");
+  if (!headerRow) return;
+
+  // Insert Email header as second column
+  const emailHeader = document.createElement("th");
+  emailHeader.textContent = "Email";
+  emailHeader.className = "top";
+  const refCell = headerRow.children[1] || null;
+  headerRow.insertBefore(emailHeader, refCell);
+
+  // Insert Checkbox header as third column (after email)
+  const checkboxHeader = document.createElement("th");
+  checkboxHeader.textContent = "";
+  checkboxHeader.className = "top";
+  const refCell2 = headerRow.children[2] || null;
+  headerRow.insertBefore(checkboxHeader, refCell2);
+
+  // Add cells for each body row
+  const rows = table.querySelectorAll("tr");
+  rows.forEach((row, index) => {
+    if (index === 0) return; // skip header
+
+    // Email cell (second column)
+    const emailCell = document.createElement("td");
+    emailCell.className = "email-cell";
+    emailCell.textContent = "Loading...";
+    const rowRef = row.children[1] || null;
+    row.insertBefore(emailCell, rowRef);
+
+    // Checkbox cell (third column)
+    const checkboxCell = document.createElement("td");
+    checkboxCell.className = "email-checkbox-cell";
+    checkboxCell.style.textAlign = "center";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "email-select";
+    checkboxCell.appendChild(checkbox);
+    const rowRef2 = row.children[2] || null;
+    row.insertBefore(checkboxCell, rowRef2);
+  });
+
+  columnsAdded = true;
 }
 
 function updateEmailsInTable(emailMap) {
@@ -98,9 +147,10 @@ function updateEmailsInTable(emailMap) {
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.action === "getHandles") {
     const handles = getHandlesFromPage();
-    addEmailColumn(); // Add the column when fetching handles
+    addEmailAndCheckboxColumns();
     sendResponse({ handles });
   } else if (msg.action === "updateEmails") {
+    addEmailAndCheckboxColumns();
     updateEmailsInTable(msg.emailMap);
     sendResponse({ success: true });
   }
