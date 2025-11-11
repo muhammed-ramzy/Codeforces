@@ -41,6 +41,19 @@ function updateEmailsInTable(emailMap) {
   const table = document.querySelector("table.standings");
   if (!table) return;
 
+  // Extract assignment name from the contest-name div
+  let subject = "";
+  const contestNameDiv = document.querySelector(".contest-name a");
+  if (contestNameDiv) {
+    // Extract up to the first ' -' or use the whole text
+    const match = contestNameDiv.textContent.trim().match(/^(.*?)(\s*-|$)/);
+    subject = match ? match[1].trim() : contestNameDiv.textContent.trim();
+  }
+
+  // Fixed Arabic message for the body
+  const fixedBody =
+    "السلام عليكم ازيك ي هندسة \nلو في حاجه مش واضحه في الفيد\u00A0باك او لو محتاجين اي سؤال ع ال whatsapp هيكون اسرع \n\n\n";
+
   const rows = table.querySelectorAll("tr");
   rows.forEach((row, index) => {
     if (index === 0) return; // Skip header row
@@ -55,9 +68,14 @@ function updateEmailsInTable(emailMap) {
     const email = emailMap[handle.toLowerCase()];
     if (email) {
       const emailLink = document.createElement("a");
+      // Compose Gmail URL with subject and body
       emailLink.href = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
         email
-      )}&bcc=${encodeURIComponent("route.cs.diploma@gmail.com")}`;
+      )}&bcc=${encodeURIComponent(
+        "route.cs.diploma@gmail.com"
+      )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+        fixedBody
+      )}`;
       emailLink.textContent = email;
       emailLink.target = "_blank"; // Open in new tab
       emailLink.style.textDecoration = "none";
