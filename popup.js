@@ -60,6 +60,17 @@ document.getElementById("getEmails").addEventListener("click", async () => {
           action: "updateEmails",
           emailMap: emailMap,
         });
+        // Refresh emailSelected button state based on persisted selections
+        chrome.tabs.sendMessage(
+          tab.id,
+          { action: "getSelectedEmails" },
+          (resp) => {
+            const btn = document.getElementById("emailSelected");
+            if (resp && resp.emails && resp.emails.length > 0)
+              btn.disabled = false;
+            else btn.disabled = true;
+          }
+        );
       } catch (err) {
         alert("Error fetching emails: " + err.message);
       } finally {
@@ -69,4 +80,94 @@ document.getElementById("getEmails").addEventListener("click", async () => {
       }
     }
   );
+});
+
+// Email selected button
+document.getElementById("emailSelected").addEventListener("click", async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  chrome.tabs.sendMessage(
+    tab.id,
+    { action: "getSelectedEmails" },
+    (response) => {
+      if (!response || !response.emails || response.emails.length === 0) {
+        alert("No emails selected.");
+        return;
+      }
+
+      // Always include route.cs.diploma@gmail.com in BCC
+      const selectedBcc = response.emails.slice();
+      const alwaysBcc = "route.cs.diploma@gmail.com";
+      if (!selectedBcc.includes(alwaysBcc)) selectedBcc.push(alwaysBcc);
+
+      const subject = response.subject || "";
+      const body = response.body || "";
+
+      // if multiple selected, send To: user's email (saved in storage)
+      if (response.emails.length > 1) {
+        chrome.storage.sync.get(["myEmail"], (res) => {
+          const myEmail = res.myEmail;
+          if (!myEmail) {
+            alert(
+              'Please set your email in the popup ("Your email") to send To yourself when multiple recipients are selected.'
+            );
+            return;
+          }
+          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+            myEmail
+          )}&bcc=${encodeURIComponent(
+            selectedBcc.join(",")
+          )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+            body
+          )}`;
+          chrome.tabs.create({ url: gmailUrl });
+        });
+      } else {
+        // single selected: open compose to that recipient, but still BCC the alwaysBcc
+        const to = response.emails[0];
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+          to
+        )}&bcc=${encodeURIComponent(
+          selectedBcc.join(",")
+        )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        chrome.tabs.create({ url: gmailUrl });
+      }
+    }
+  );
+});
+
+// Initialize Email selected button state when popup opens
+(async function initSelectedButton() {
+  try {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    chrome.tabs.sendMessage(tab.id, { action: "getSelectedEmails" }, (resp) => {
+      const btn = document.getElementById("emailSelected");
+      if (resp && resp.emails && resp.emails.length > 0) btn.disabled = false;
+      else btn.disabled = true;
+    });
+  } catch (e) {
+    // ignore
+  }
+})();
+
+// load and save user's email for multi-send
+document.getElementById("saveMyEmail").addEventListener("click", () => {
+  const val = document.getElementById("myEmail").value.trim();
+  if (!val) {
+    chrome.storage.sync.remove(["myEmail"], () => {
+      alert("Saved email cleared");
+    });
+    return;
+  }
+  chrome.storage.sync.set({ myEmail: val }, () => {
+    alert("Your email saved");
+  });
+});
+
+// populate myEmail input from storage
+chrome.storage.sync.get(["myEmail"], (res) => {
+  if (res && res.myEmail)
+    document.getElementById("myEmail").value = res.myEmail;
 });

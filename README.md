@@ -41,7 +41,7 @@ Note: As you edit files, refresh the extension on the extensions page or reload 
 The popup uses a Sheet/GAS web app to map handles -> emails. In `popup.js` set the `SHEET_API_URL` to your deployed Apps Script web app URL. Example:
 
 ```js
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfy.../exec';
+const SHEET_API_URL = "https://script.google.com/macros/s/AKfy.../exec";
 ```
 
 The endpoint should accept a `handles` query parameter (comma-separated handles) and return JSON of shape:
@@ -85,6 +85,7 @@ Because compose is opened via URL, Gmail limits how much advanced formatting you
 This section documents issues seen while developing and how to fix them.
 
 - `Uncaught (in promise) TypeError: Cannot read properties of null (reading 'style')` — spinner is null
+
   - Cause: Popup script attempted to access `.spinner` before it existed in `popup.html`.
   - Fix: Ensure `popup.html` contains an element with class `spinner`. If you changed `popup.html`, add:
     ```html
@@ -93,10 +94,12 @@ This section documents issues seen while developing and how to fix them.
   - Also confirm `popup.js` queries the element after DOM is loaded (scripts are loaded at the end of `popup.html` in this project).
 
 - `Uncaught ReferenceError: msg is not defined` in `content.js`
+
   - Cause: stray `if (msg.action...)` block outside of the message listener.
   - Fix: Ensure the only code referencing `msg` is inside the `chrome.runtime.onMessage.addListener((msg,...) => { ... })` callback. The repository version should already have this fixed.
 
 - Gmail compose not showing RTL or incorrect direction
+
   - Cause: Gmail/browser may ignore embedding marks or display differently depending on settings.
   - Workarounds:
     - Prefix the body with Unicode Right-to-Left Embedding (U+202B) and end with Pop Directional Formatting (U+202C). The project may include this behavior in some versions.
@@ -111,6 +114,7 @@ This section documents issues seen while developing and how to fix them.
 ## Development notes
 
 - Files to edit for behavior:
+
   - `popup.js` — controls the popup and calls the content script to get handles and push email updates.
   - `content.js` — injects columns into the standings table and updates rows when email data arrives.
 

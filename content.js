@@ -35,6 +35,8 @@ function addEmailColumn() {
   });
 
   columnsAdded = true;
+  // restore persisted checkbox state after creating columns
+  loadSelections();
 }
 function addEmailAndCheckboxColumns() {
   if (columnsAdded) return;
@@ -78,12 +80,64 @@ function addEmailAndCheckboxColumns() {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.className = "email-select";
+    // attach change handler to persist selection
+    checkbox.addEventListener("change", () => {
+      const handleEl = row.querySelector('a[href*="/profile/"]');
+      const handle = handleEl ? handleEl.textContent.trim() : null;
+      if (handle) saveSelection(handle, checkbox.checked);
+    });
     checkboxCell.appendChild(checkbox);
     const rowRef2 = row.children[2] || null;
     row.insertBefore(checkboxCell, rowRef2);
   });
 
   columnsAdded = true;
+  // restore persisted checkbox state after creating columns
+  loadSelections();
+}
+
+function getContestKey() {
+  // Try to extract a stable contest identifier from the contest-name link
+  const contestLink = document.querySelector(".contest-name a");
+  if (contestLink && contestLink.getAttribute("href")) {
+    // use the path part as key
+    try {
+      const url = new URL(contestLink.href, location.origin);
+      return "cf_selected_" + url.pathname;
+    } catch (e) {
+      return "cf_selected_" + contestLink.getAttribute("href");
+    }
+  }
+  return "cf_selected_" + location.pathname;
+}
+
+function saveSelection(handle, checked) {
+  const key = getContestKey();
+  chrome.storage.local.get([key], (res) => {
+    const map = res[key] || {};
+    if (checked) map[handle] = true;
+    else delete map[handle];
+    const toSave = {};
+    toSave[key] = map;
+    chrome.storage.local.set(toSave);
+  });
+}
+
+function loadSelections() {
+  const key = getContestKey();
+  chrome.storage.local.get([key], (res) => {
+    const map = res[key] || {};
+    // apply to checkboxes
+    const rows = document.querySelectorAll("table.standings tr");
+    rows.forEach((row, index) => {
+      if (index === 0) return;
+      const handleEl = row.querySelector('a[href*="/profile/"]');
+      if (!handleEl) return;
+      const handle = handleEl.textContent.trim();
+      const checkbox = row.querySelector(".email-select");
+      if (checkbox) checkbox.checked = !!map[handle];
+    });
+  });
 }
 
 function updateEmailsInTable(emailMap) {
@@ -153,5 +207,30 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     addEmailAndCheckboxColumns();
     updateEmailsInTable(msg.emailMap);
     sendResponse({ success: true });
+  } else if (msg.action === "getSelectedEmails") {
+    // return selected emails (array), subject and body
+    const table = document.querySelector("table.standings");
+    if (!table) {
+      sendResponse({ emails: [], subject: "", body: "" });
+      return;
+    }
+    const rows = table.querySelectorAll("tr");
+    const emails = [];
+    rows.forEach((row, index) => {
+      if (index === 0) return;
+      const checkbox = row.querySelector(".email-select");
+      if (!checkbox || !checkbox.checked) return;
+      const emailAnchor = row.querySelector(".email-cell a");
+      if (emailAnchor) emails.push(emailAnchor.textContent.trim());
+    });
+    // include subject and body (same extraction as updateEmailsInTable)
+    let subject = "";
+    const contestNameDiv = document.querySelector(".contest-name a");
+    if (contestNameDiv) {
+      const match = contestNameDiv.textContent.trim().match(/^(.*?)(\s*-|$)/);
+      subject = match ? match[1].trim() : contestNameDiv.textContent.trim();
+    }
+    const body = typeof fixedBody !== "undefined" ? fixedBody : "";
+    sendResponse({ emails, subject, body });
   }
 });

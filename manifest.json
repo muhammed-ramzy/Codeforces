@@ -3,7 +3,7 @@
   "name": "Codeforces Email Finder",
   "version": "1.0",
   "description": "Get emails of Codeforces handles from Google Sheet",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

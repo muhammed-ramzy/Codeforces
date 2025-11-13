@@ -145,6 +145,56 @@
       <div class="button-container">
         <button id="getEmails">Fetch Emails</button>
       </div>
+      <div
+        style="
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 10px;
+        "
+      >
+        <input
+          id="myEmail"
+          type="email"
+          placeholder="Your email (for multi-send)"
+          style="
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #dfe1e5;
+            width: 220px;
+          "
+        />
+        <button
+          id="saveMyEmail"
+          style="
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #34a853;
+            color: white;
+            border: none;
+            cursor: pointer;
+          "
+        >
+          Save
+        </button>
+      </div>
+      <div class="toolbar" style="text-align: center; margin-bottom: 12px">
+        <button
+          id="emailSelected"
+          disabled
+          style="
+            padding: 8px 14px;
+            border-radius: 18px;
+            background: #0b66ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+          "
+        >
+          Email selected
+        </button>
+      </div>
       <div class="spinner"></div>
       <div class="results-container">
         <div class="results-section">
