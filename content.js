@@ -104,27 +104,12 @@ function addEmailAndCheckboxColumns() {
 
       // Clear previous last-clicked row styling
       if (lastClickedRow && lastClickedRow !== row) {
-        lastClickedRow.style.backgroundColor = "";
-        lastClickedRow.style.boxShadow = "";
-        lastClickedRow.style.transition = "";
-        lastClickedRow.style.transform = "scale(1)";
-        Array.from(lastClickedRow.children).forEach((cell) => {
-          cell.style.backgroundColor = "";
-          cell.style.boxShadow = "";
-        });
+        clearRowGlow(lastClickedRow);
       }
 
       // Apply glowing style to the clicked row
       lastClickedRow = row;
-      row.style.backgroundColor = "transparent";
-      row.style.transition = "box-shadow 0.3s ease, transform 0.3s ease";
-      row.style.boxShadow = "0 0 15px 2px rgba(59, 119, 224, 1)";
-      row.style.transform = "scale(1.01)"; // subtle pop effect
-
-      Array.from(row.children).forEach((cell) => {
-        cell.style.backgroundColor = "transparent";
-        cell.style.boxShadow = "outset 0 0 10px rgba(59, 119, 224, 1)";
-      });
+      applyRowGlow(row);
     });
     checkboxCell.appendChild(checkbox);
     const rowRef2 = row.children[2] || null;
@@ -149,6 +134,42 @@ function getContestKey() {
     }
   }
   return "cf_selected_" + location.pathname;
+}
+
+function applyRowGlow(row) {
+  /**
+   * Apply glow effect to a row: blue shadow, scale, rounded corners
+   */
+  if (!row) return;
+  row.style.backgroundColor = "white";
+  row.style.transition = "box-shadow 0.3s ease, transform 0.3s ease";
+  row.style.boxShadow = "0 0 15px 2px rgba(59, 119, 224, 1)";
+  row.style.transform = "scale(1.01)";
+  row.style.borderRadius = "8px";
+
+  Array.from(row.children).forEach((cell) => {
+    cell.style.backgroundColor = "white";
+    cell.style.boxShadow = "outset 0 0 10px rgba(59, 119, 224, 1)";
+    cell.style.borderRadius = "8px";
+  });
+}
+
+function clearRowGlow(row) {
+  /**
+   * Remove all glow styling from a row
+   */
+  if (!row) return;
+  row.style.backgroundColor = "";
+  row.style.boxShadow = "";
+  row.style.transition = "";
+  row.style.transform = "scale(1)";
+  row.style.borderRadius = "";
+
+  Array.from(row.children).forEach((cell) => {
+    cell.style.backgroundColor = "";
+    cell.style.boxShadow = "";
+    cell.style.borderRadius = "";
+  });
 }
 
 function saveSelection(handle, checked) {
@@ -189,16 +210,7 @@ function loadSelections() {
       // Restore last-clicked row with shadow and glow effect
       if (handle === lastClickedHandle) {
         lastClickedRow = row;
-        row.style.backgroundColor = "transparent";
-        row.style.transition = "box-shadow 0.3s ease, transform 0.3s ease";
-        row.style.boxShadow = "0 0 15px 2px rgba(59, 119, 224, 1)";
-        row.style.transform = "scale(1.01)";
-
-        // Apply glow to all cells
-        Array.from(row.children).forEach((cell) => {
-          cell.style.backgroundColor = "transparent";
-          cell.style.boxShadow = "outset 0 0 10px rgba(59, 119, 224, 1)";
-        });
+        applyRowGlow(row);
       }
     });
   });
