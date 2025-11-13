@@ -1,4 +1,6 @@
 let columnsAdded = false;
+let lastClickedCheckbox = null;
+let lastClickedRow = null;
 
 function getHandlesFromPage() {
   const elements = Array.from(
@@ -47,6 +49,17 @@ function addEmailAndCheckboxColumns() {
   const headerRow = table.querySelector("tr");
   if (!headerRow) return;
 
+  // Make the header row sticky
+  headerRow.style.position = "sticky";
+  headerRow.style.top = "0"; // stick to top edge
+  headerRow.style.zIndex = "100";
+  headerRow.style.backgroundColor = "#ffffff";
+  headerRow.style.boxShadow = "0 5px 8px rgba(59, 119, 224, 1)";
+  headerRow.style.backdropFilter = "blur(4px)"; // subtle glass effect
+  headerRow.style.borderBottom = "1px solid #e0e0e0";
+  headerRow.style.transition =
+    "box-shadow 0.3s ease, background-color 0.3s ease";
+
   // Insert Email header as second column
   const emailHeader = document.createElement("th");
   emailHeader.textContent = "Email";
@@ -84,7 +97,34 @@ function addEmailAndCheckboxColumns() {
     checkbox.addEventListener("change", () => {
       const handleEl = row.querySelector('a[href*="/profile/"]');
       const handle = handleEl ? handleEl.textContent.trim() : null;
-      if (handle) saveSelection(handle, checkbox.checked);
+      if (handle) {
+        saveSelection(handle, checkbox.checked);
+        saveLastClickedHandle(handle);
+      }
+
+      // Clear previous last-clicked row styling
+      if (lastClickedRow && lastClickedRow !== row) {
+        lastClickedRow.style.backgroundColor = "";
+        lastClickedRow.style.boxShadow = "";
+        lastClickedRow.style.transition = "";
+        lastClickedRow.style.transform = "scale(1)";
+        Array.from(lastClickedRow.children).forEach((cell) => {
+          cell.style.backgroundColor = "";
+          cell.style.boxShadow = "";
+        });
+      }
+
+      // Apply glowing style to the clicked row
+      lastClickedRow = row;
+      row.style.backgroundColor = "transparent";
+      row.style.transition = "box-shadow 0.3s ease, transform 0.3s ease";
+      row.style.boxShadow = "0 0 15px 2px rgba(59, 119, 224, 1)";
+      row.style.transform = "scale(1.01)"; // subtle pop effect
+
+      Array.from(row.children).forEach((cell) => {
+        cell.style.backgroundColor = "transparent";
+        cell.style.boxShadow = "outset 0 0 10px rgba(59, 119, 224, 1)";
+      });
     });
     checkboxCell.appendChild(checkbox);
     const rowRef2 = row.children[2] || null;
@@ -123,10 +163,19 @@ function saveSelection(handle, checked) {
   });
 }
 
+function saveLastClickedHandle(handle) {
+  const key = getContestKey();
+  const lastKey = key + "_lastClicked";
+  chrome.storage.local.set({ [lastKey]: handle });
+}
+
 function loadSelections() {
   const key = getContestKey();
-  chrome.storage.local.get([key], (res) => {
+  const lastKey = key + "_lastClicked";
+  chrome.storage.local.get([key, lastKey], (res) => {
     const map = res[key] || {};
+    const lastClickedHandle = res[lastKey] || null;
+
     // apply to checkboxes
     const rows = document.querySelectorAll("table.standings tr");
     rows.forEach((row, index) => {
@@ -136,6 +185,21 @@ function loadSelections() {
       const handle = handleEl.textContent.trim();
       const checkbox = row.querySelector(".email-select");
       if (checkbox) checkbox.checked = !!map[handle];
+
+      // Restore last-clicked row with shadow and glow effect
+      if (handle === lastClickedHandle) {
+        lastClickedRow = row;
+        row.style.backgroundColor = "transparent";
+        row.style.transition = "box-shadow 0.3s ease, transform 0.3s ease";
+        row.style.boxShadow = "0 0 15px 2px rgba(59, 119, 224, 1)";
+        row.style.transform = "scale(1.01)";
+
+        // Apply glow to all cells
+        Array.from(row.children).forEach((cell) => {
+          cell.style.backgroundColor = "transparent";
+          cell.style.boxShadow = "outset 0 0 10px rgba(59, 119, 224, 1)";
+        });
+      }
     });
   });
 }

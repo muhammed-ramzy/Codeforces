@@ -5,10 +5,10 @@
   "description": "Get emails of Codeforces handles from Google Sheet",
   "permissions": ["activeTab", "scripting", "storage"],
   "icons": {
-      "16": "icon.png",
-      "48": "icon.png",
-      "128": "icon.png"
-    },
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -22,5 +22,9 @@
       "matches": ["*://codeforces.com/*"],
       "js": ["content.js"]
     }
+  ],
+  "host_permissions": [
+    "https://script.google.com/*",
+    "https://mail.google.com/*"
   ]
 }
