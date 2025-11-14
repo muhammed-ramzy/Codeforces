@@ -138,38 +138,18 @@ function getContestKey() {
 
 function applyRowGlow(row) {
   /**
-   * Apply glow effect to a row: blue shadow, scale, rounded corners
+   * Apply glow effect to a row using CSS class
    */
   if (!row) return;
-  row.style.backgroundColor = "white";
-  row.style.transition = "box-shadow 0.3s ease, transform 0.3s ease";
-  row.style.boxShadow = "0 0 15px 2px rgba(59, 119, 224, 1)";
-  row.style.transform = "scale(1.01)";
-  row.style.borderRadius = "8px";
-
-  Array.from(row.children).forEach((cell) => {
-    cell.style.backgroundColor = "white";
-    cell.style.boxShadow = "outset 0 0 10px rgba(59, 119, 224, 1)";
-    cell.style.borderRadius = "8px";
-  });
+  row.classList.add("row-glow");
 }
 
 function clearRowGlow(row) {
   /**
-   * Remove all glow styling from a row
+   * Remove glow styling from a row using CSS class
    */
   if (!row) return;
-  row.style.backgroundColor = "";
-  row.style.boxShadow = "";
-  row.style.transition = "";
-  row.style.transform = "scale(1)";
-  row.style.borderRadius = "";
-
-  Array.from(row.children).forEach((cell) => {
-    cell.style.backgroundColor = "";
-    cell.style.boxShadow = "";
-    cell.style.borderRadius = "";
-  });
+  row.classList.remove("row-glow");
 }
 
 function saveSelection(handle, checked) {
@@ -256,20 +236,12 @@ function updateEmailsInTable(emailMap) {
         fixedBody
       )}`;
       emailLink.textContent = email;
-      emailLink.target = "_blank"; // Open in new tab
-      emailLink.style.textDecoration = "none";
-      emailLink.style.color = "#4285f4"; // Google blue color
-      emailLink.onmouseover = () => {
-        emailLink.style.textDecoration = "underline";
-      };
-      emailLink.onmouseout = () => {
-        emailLink.style.textDecoration = "none";
-      };
-      emailCell.textContent = ""; // Clear the cell
+      emailLink.target = "_blank";
+      emailCell.textContent = "";
       emailCell.appendChild(emailLink);
     } else {
       emailCell.textContent = "Not found";
-      emailCell.style.color = "#999";
+      emailCell.classList.add("email-not-found");
     }
   });
 }

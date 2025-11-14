@@ -20,7 +20,8 @@
   "content_scripts": [
     {
       "matches": ["*://codeforces.com/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "css": ["styles.css"]
     }
   ],
   "host_permissions": [
