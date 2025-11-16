@@ -25,7 +25,7 @@ document.getElementById("getEmails").addEventListener("click", async () => {
 
       const handles = response.handles.join(",");
       const SHEET_API_URL =
-        "https://script.google.com/macros/s/AKfycbyd2yEs6YvRfaNE3xZJmNjkH6SsuhnRW-Vm_y6_53E8x9vvFbSP0DfyXdJrMXdrnF-b/exec";
+        "https://script.google.com/macros/s/AKfycbyEj0LBJ4P-3MbKW_eGbzKe4ddxV9r9zA1wH33fOcIvlAAGMD5N7QRtpO9A-otnvCE6/exec";
 
       try {
         const res = await fetch(`${SHEET_API_URL}?handles=${handles}`);
